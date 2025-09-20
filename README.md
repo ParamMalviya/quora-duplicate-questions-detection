@@ -1,1 +1,1 @@
-# ML-Quora-Duplicate-question-Project-1
+# quora-duplicate-questions-detection
