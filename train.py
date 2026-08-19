@@ -98,7 +98,7 @@ print("\naccuracy:", round(accuracy_score(y_test, y_pred), 4))
 print("\n", classification_report(y_test, y_pred, target_names=["not duplicate", "duplicate"]))
 print("confusion matrix:\n", confusion_matrix(y_test, y_pred))
 
-print("\nsaving both pickles together so they can never drift apart...")
+print("\nsaving all three pickles together so they can never drift apart...")
 with open("random_forest_model.pkl", "wb") as f:
     pickle.dump(rf, f, protocol=pickle.HIGHEST_PROTOCOL)
 with open("count_vectorizer.pkl", "wb") as f:
