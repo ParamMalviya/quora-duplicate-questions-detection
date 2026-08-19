@@ -72,7 +72,7 @@ def vectorize(indices):
 
 X_train = vectorize(idx_train)
 X_test = vectorize(idx_test)
-print("train shape:", X_train.shape, "(should be 6022 columns)")
+print("train shape:", X_train.shape, "(should be 6023 columns)")
 
 # max_depth caps how big the trees get, which is what actually keeps the
 # pickle small enough to commit. costs about 1% accuracy, worth it.
