@@ -27,13 +27,22 @@ SAFE_DIV = 0.0001
 
 # the exact order training used. app.py must produce these in the SAME order,
 # otherwise the model gets the right numbers in the wrong slots.
+#
+# heads up to myself: these 23 names come from TWO different functions, not one.
+#   indices 0-21 (up to "token_set_ratio")  <- build_features()
+#   index 22 ("tfidf_cosine_sim")           <- tfidf_cosine_similarity(),
+#                                              only stitched together in make_input_vector()
+# so build_features() alone returns 22 values, not 23. worth remembering if I ever
+# use FEATURE_NAMES to label model.feature_importances_ - everything past index 21
+# would silently shift by one.
 FEATURE_NAMES = [
     "q1_len", "q2_len", "q1_num_words", "q2_num_words",
     "word_common", "word_total", "word_share",
     "cwc_min", "cwc_max", "csc_min", "csc_max", "ctc_min", "ctc_max",
     "last_word_eq", "first_word_eq",
     "abs_len_diff", "mean_len", "longest_substr_ratio",
-    "fuzz_ratio", "fuzz_partial_ratio", "token_sort_ratio", "token_set_ratio","tfidf_cosine_sim",
+    "fuzz_ratio", "fuzz_partial_ratio", "token_sort_ratio", "token_set_ratio",
+    "tfidf_cosine_sim",
 ]
 
 CONTRACTIONS = { 
@@ -182,7 +191,8 @@ def preprocess(q):
     q = q.replace("'re", " are")
     q = q.replace("'ll", " will")
 
-    # strip html tags. lxml parser named explicitly so bs4 stops warning about it
+    # strip html tags. I name html.parser explicitly (stdlib, so no extra dependency
+    # to install on streamlit cloud) which also stops bs4 warning about an unspecified parser
     q = BeautifulSoup(q, "html.parser").get_text()
 
     # kill punctuation
