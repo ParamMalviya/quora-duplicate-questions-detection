@@ -7,7 +7,7 @@ This is an early project of mine — classical ML, no deep learning. The interes
 is the feature engineering: instead of letting a model learn representations, I hand-built
 22 similarity features and fed them to a RandomForest alongside bag-of-words.
 
-**Live demo:** _(add your Streamlit Cloud link here)_
+**Live demo:** https://quora-duplicate-checker.streamlit.app/
 
 ## How it works
 
