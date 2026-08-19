@@ -1,22 +1,27 @@
-# retrains the model and saves BOTH pickles together, so they always match.
+# retrains the model and saves all THREE pickles together (model, vectorizer,
+# idf transformer), so they always match each other.
 # run this once: python train.py
 #
 # why this exists: the old repo had count_vectorizer.pkl committed but the
 # model pickle was missing entirely, so the app could never actually run.
 
+import os
 import pickle
-import pandas as pd
+
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import normalize
 
 from features import preprocess, build_features
 
-# 50k rows instead of 100k. a forest trained on the full set pickles out to
-# a few hundred MB, and github hard-rejects anything over 100MB - which is
-# almost certainly why the model file never got uploaded in the first place.
+# 100k rows. a forest trained on the FULL ~400k-row dataset pickles out to a few
+# hundred MB, and github hard-rejects anything over 100MB - which is almost
+# certainly why the model file never got uploaded in the original version of this
+# repo. 100k rows + max_depth=50 (below) keeps the pickle comfortably under that.
 SAMPLE_SIZE = 100000
 CSV_PATH = "train.csv"   # kaggle quora question pairs
 
@@ -29,9 +34,12 @@ df["question1"] = df["question1"].apply(preprocess)
 df["question2"] = df["question2"].apply(preprocess)
 
 print("building the 22 engineered features...")
+# zip over the two columns directly instead of df.iterrows(). iterrows builds a
+# fresh pandas Series object for every single row, which on 100k rows is minutes
+# of pure overhead - zip just hands me the two strings I actually need.
 engineered = np.array([
-    build_features(r["question1"], r["question2"])
-    for _, r in df.iterrows()
+    build_features(q1, q2)
+    for q1, q2 in zip(df["question1"], df["question2"])
 ])
 
 y = df["is_duplicate"].values
@@ -51,12 +59,9 @@ q2_all = df["question2"].values
 cv = CountVectorizer(max_features=3000)
 cv.fit(list(q1_all[idx_train]) + list(q2_all[idx_train]))
 
-from sklearn.feature_extraction.text import TfidfTransformer
-
 idf_transformer = TfidfTransformer()
 idf_transformer.fit(cv.transform(list(q1_all[idx_train]) + list(q2_all[idx_train])))
 
-from sklearn.preprocessing import normalize
 
 def vectorize(indices):
     q1_bow = cv.transform(q1_all[indices]).toarray()
@@ -101,6 +106,5 @@ with open("count_vectorizer.pkl", "wb") as f:
 with open("idf_transformer.pkl", "wb") as f:
     pickle.dump(idf_transformer, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-import os
 print("model size:", round(os.path.getsize("random_forest_model.pkl") / 1e6, 1), "MB (must stay under 100)")
 print("done")
